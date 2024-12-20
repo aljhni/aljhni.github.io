@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historical A Records Lookup</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .results {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Historical A Records Lookup</h1>
+    <p>Enter a domain to retrieve its historical IP addresses:</p>
+    <input type="text" id="domain" placeholder="example.com">
+    <button onclick="fetchARecords()">Get Historical A Records</button>
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    const API_KEY = "YOUR_API_KEY"; // Replace with your SecurityTrails API key
+
+    async function fetchARecords() {
+      const domain = document.getElementById('domain').value.trim();
+      const resultsDiv = document.getElementById('results');
+
+      if (!domain) {
+        resultsDiv.innerHTML = "<p style='color: red;'>Please enter a domain.</p>";
+        return;
+      }
+
+      const url = `https://api.securitytrails.com/v1/history/${domain}/dns/a`;
+
+      try {
+        // Fetch data from the SecurityTrails API
+        const response = await fetch(url, {
+          headers: {
+            "APIKEY": API_KEY,
+            "Accept": "application/json",
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          resultsDiv.innerHTML = `<p style="color: red;">Error: ${errorData.message || 'Unable to fetch data.'}</p>`;
+          return;
+        }
+
+        const data = await response.json();
+
+        // Extract IP addresses
+        const records = data.records || [];
+        const ipSet = new Set();
+        records.forEach(record => {
+          (record.values || []).forEach(value => {
+            if (value.ip) {
+              ipSet.add(value.ip);
+            }
+          });
+        });
+
+        // Display results
+        if (ipSet.size === 0) {
+          resultsDiv.innerHTML = "<p>No historical A records found.</p>";
+        } else {
+          resultsDiv.innerHTML = `
+            <h3>Historical IP Addresses:</h3>
+            <ul>
+              ${Array.from(ipSet).map(ip => `<li>${ip}</li>`).join('')}
+            </ul>
+          `;
+        }
+
+      } catch (error) {
+        resultsDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
