@@ -1,116 +1,91 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Historical A Records Lookup</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-      background-color: #f4f4f9;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    input {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .results {
-      margin-top: 20px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background-color: #fff;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .login-container {
+            width: 300px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .login-container h1 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-container button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Historical A Records Lookup</h1>
-    <p>Enter a domain to retrieve its historical IP addresses:</p>
-    <input type="text" id="domain" placeholder="example.com">
-    <button onclick="fetchARecords()">Get Historical A Records</button>
-    <div class="results" id="results"></div>
-  </div>
+    <div class="login-container" id="login-container">
+        <h1>Login</h1>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="validateLogin()">Login</button>
+        <div id="error-message" class="error"></div>
+    </div>
 
-  <script>
-    const API_KEY = "7HQF2Rap6H2Nm3M7QIRxabnI9LCbCaCv"; // Replace with your SecurityTrails API key
+    <iframe id="content-frame" class="iframe-container" style="display: none;" src="https://experience.arcgis.com/experience/c67de5af40cf47b5b58cb823fc270617/page/%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A9-%D8%A7%D9%84%D8%B1%D8%A6%D9%8A%D8%B3%D9%8A%D8%A91/"></iframe>
 
-    async function fetchARecords() {
-      const domain = document.getElementById('domain').value.trim();
-      const resultsDiv = document.getElementById('results');
+    <script>
+        function validateLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
 
-      if (!domain) {
-        resultsDiv.innerHTML = "<p style='color: red;'>Please enter a domain.</p>";
-        return;
-      }
-
-      const url = `https://api.securitytrails.com/v1/history/${domain}/dns/a`;
-
-      try {
-        // Fetch data from the SecurityTrails API
-        const response = await fetch(url, {
-          headers: {
-            "APIKEY": API_KEY,
-            "Accept": "application/json",
-          }
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          resultsDiv.innerHTML = `<p style="color: red;">Error: ${errorData.message || 'Unable to fetch data.'}</p>`;
-          return;
-        }
-
-        const data = await response.json();
-
-        // Extract IP addresses
-        const records = data.records || [];
-        const ipSet = new Set();
-        records.forEach(record => {
-          (record.values || []).forEach(value => {
-            if (value.ip) {
-              ipSet.add(value.ip);
+            if (username === 'admin' && password === 'admin') {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('content-frame').style.display = 'block';
+            } else {
+                errorMessage.textContent = 'Invalid username or password.';
             }
-          });
-        });
-
-        // Display results
-        if (ipSet.size === 0) {
-          resultsDiv.innerHTML = "<p>No historical A records found.</p>";
-        } else {
-          resultsDiv.innerHTML = `
-            <h3>Historical IP Addresses:</h3>
-            <ul>
-              ${Array.from(ipSet).map(ip => `<li>${ip}</li>`).join('')}
-            </ul>
-          `;
         }
-
-      } catch (error) {
-        resultsDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
-      }
-    }
-  </script>
+    </script>
 </body>
 </html>
