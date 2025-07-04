@@ -1,1 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أداة استخراج المسار الأساسي للروابط (Recon)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #1a1a2e;
+      --card-bg-color: #16213e;
+      --text-color: #e0e0e0;
+      --border-color: #0f3460;
+      --button-bg-color: #e94560;
+      --button-hover-color: #b82b42;
+      --font-family: 'Roboto', sans-serif;
+      --placeholder-color: #6a6a8a;
+    }
 
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      direction: rtl; /* Right-to-left for Arabic */
+      margin: 0;
+    }
+
+    .container {
+      background-color: var(--card-bg-color);
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+      padding: 30px;
+      width: 100%;
+      max-width: 700px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--button-bg-color);
+      margin-bottom: 25px;
+      font-weight: 700;
+    }
+
+    p {
+      margin-bottom: 15px;
+      line-height: 1.6;
+      color: var(--text-color);
+    }
+
+    textarea {
+      width: calc(100% - 20px); /* Adjusting for padding */
+      height: 200px;
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 10px;
+      color: var(--text-color);
+      font-size: 1rem;
+      resize: vertical;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      direction: ltr; /* LTR for URL input */
+      text-align: left; /* Align text left for URLs */
+    }
+
+    textarea::placeholder {
+      color: var(--placeholder-color);
+    }
+
+    button {
+      background-color: var(--button-bg-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      display: block;
+      width: fit-content;
+      margin: 0 auto 25px auto; /* Center button */
+      font-weight: 700;
+    }
+
+    button:hover {
+      background-color: var(--button-hover-color);
+      transform: translateY(-2px);
+    }
+
+    h3 {
+      color: var(--button-bg-color);
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    pre {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 15px;
+      min-height: 100px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: var(--text-color);
+      font-size: 0.95rem;
+      overflow-y: auto;
+      max-height: 300px;
+      direction: ltr; /* LTR for output URLs */
+      text-align: left; /* Align text left for output */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2><span style="color: var(--text-color);">أداة Recon:</span> استخراج المسار الأساسي للروابط</h2>
+    <p>
+      الصق قائمة بالروابط أدناه. ستقوم الأداة بتحليل كل رابط واستخراج المسار الأساسي (على سبيل المثال، <code>https://example.com/admin/</code>) لكل منها، ثم عرض النتائج الفريدة والمنظمة. هذه الأداة مفيدة لجمع معلومات سريعة عن هياكل مواقع الويب.
+    </p>
+    <textarea id="urlInput" placeholder="الصق روابطك هنا (رابط واحد في كل سطر):
+https://example.com/admin/login/index.php
+http://test.com/api/v1/users/profile
+https://sub.domain.com/dashboard/settings"></textarea>
+
+    <button onclick="processUrls()">استخراج المسارات الأساسية</button>
+
+    <h3>النتائج المستخرجة:</h3>
+    <pre id="result">المسارات المستخرجة ستظهر هنا...</pre>
+  </div>
+
+  <script>
+    function processUrls() {
+      const input = document.getElementById('urlInput').value;
+      const lines = input.split('\n')
+                         .map(line => line.trim())
+                         .filter(line => line);
+      const basePaths = new Set();
+      let hasInvalidUrls = false;
+
+      lines.forEach(url => {
+        try {
+          const parsed = new URL(url);
+          // Remove query parameters and hash before processing path
+          const cleanPathname = parsed.pathname.split('?')[0].split('#')[0];
+          const pathParts = cleanPathname.split('/').filter(part => part !== ''); // Filter out empty strings from split
+
+          // Remove the last part (file or specific endpoint)
+          if (pathParts.length > 0) {
+            pathParts.pop();
+          }
+          
+          let basePath = pathParts.join('/');
+          
+          // Ensure base path always ends with a slash for directory representation
+          if (basePath.length > 0 && !basePath.endsWith('/')) {
+            basePath += '/';
+          } else if (basePath.length === 0) { // For root paths like "https://example.com"
+            basePath = '/';
+          }
+          
+          const baseUrl = `${parsed.protocol}//${parsed.host}${basePath}`;
+          basePaths.add(baseUrl);
+        } catch (e) {
+          console.warn(`Invalid URL skipped: ${url}`);
+          hasInvalidUrls = true;
+        }
+      });
+
+      const resultElement = document.getElementById('result');
+      if (basePaths.size === 0 && !hasInvalidUrls) {
+        resultElement.textContent = 'لم يتم العثور على مسارات أساسية. الرجاء التأكد من إدخال روابط صالحة.';
+        resultElement.style.color = 'var(--placeholder-color)';
+      } else if (basePaths.size === 0 && hasInvalidUrls) {
+        resultElement.textContent = 'لم يتم العثور على روابط صالحة لاستخراج المسارات منها.';
+        resultElement.style.color = 'var(--button-bg-color)';
+      } else {
+        resultElement.textContent = Array.from(basePaths).sort().join('\n');
+        resultElement.style.color = 'var(--text-color)';
+      }
+    }
+  </script>
+</body>
+</html>
