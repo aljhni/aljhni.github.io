@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>أداة استخراج المسار الأساسي للروابط (Recon)</title>
+  <title>أداة Recon: استخراج وفلترة المسارات الأساسية</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -15,6 +15,8 @@
       --button-hover-color: #b82b42;
       --font-family: 'Roboto', sans-serif;
       --placeholder-color: #6a6a8a;
+      --input-bg-color: #0f1624;
+      --checkbox-color: #e94560;
     }
 
     body {
@@ -36,7 +38,7 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
       padding: 30px;
       width: 100%;
-      max-width: 700px;
+      max-width: 800px; /* Increased max-width */
       box-sizing: border-box;
     }
 
@@ -47,6 +49,14 @@
       font-weight: 700;
     }
 
+    h3 {
+      color: var(--button-bg-color);
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: 700;
+    }
+
     p {
       margin-bottom: 15px;
       line-height: 1.6;
@@ -54,9 +64,9 @@
     }
 
     textarea {
-      width: calc(100% - 20px); /* Adjusting for padding */
+      width: calc(100% - 20px);
       height: 200px;
-      background-color: var(--bg-color);
+      background-color: var(--input-bg-color);
       border: 1px solid var(--border-color);
       border-radius: 5px;
       padding: 10px;
@@ -65,12 +75,100 @@
       resize: vertical;
       margin-bottom: 20px;
       box-sizing: border-box;
-      direction: ltr; /* LTR for URL input */
-      text-align: left; /* Align text left for URLs */
+      direction: ltr;
+      text-align: left;
     }
 
     textarea::placeholder {
       color: var(--placeholder-color);
+    }
+
+    .filter-section {
+      background-color: var(--input-bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 25px;
+      margin-bottom: 25px;
+    }
+
+    .filter-section h4 {
+      color: var(--text-color);
+      margin-bottom: 15px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border-color);
+      border-radius: 3px;
+      margin-left: 10px; /* Space between checkbox and label */
+      background-color: var(--input-bg-color);
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .checkbox-container input[type="checkbox"]:checked {
+      background-color: var(--checkbox-color);
+      border-color: var(--checkbox-color);
+    }
+
+    .checkbox-container input[type="checkbox"]:checked::after {
+      content: '✔';
+      color: white;
+      font-size: 12px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .checkbox-container label {
+      color: var(--text-color);
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .filter-input-group {
+      margin-top: 15px;
+    }
+
+    .filter-input-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-color);
+      font-size: 0.95rem;
+    }
+
+    .filter-input-group input[type="text"] {
+      width: calc(100% - 20px);
+      padding: 10px;
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      color: var(--text-color);
+      font-size: 0.95rem;
+      direction: ltr; /* LTR for inputting extensions/params */
+      text-align: left;
     }
 
     button {
@@ -84,7 +182,7 @@
       transition: background-color 0.3s ease, transform 0.2s ease;
       display: block;
       width: fit-content;
-      margin: 0 auto 25px auto; /* Center button */
+      margin: 0 auto 25px auto;
       font-weight: 700;
     }
 
@@ -93,16 +191,8 @@
       transform: translateY(-2px);
     }
 
-    h3 {
-      color: var(--button-bg-color);
-      margin-top: 30px;
-      margin-bottom: 15px;
-      text-align: center;
-      font-weight: 700;
-    }
-
     pre {
-      background-color: var(--bg-color);
+      background-color: var(--input-bg-color);
       border: 1px solid var(--border-color);
       border-radius: 5px;
       padding: 15px;
@@ -113,29 +203,81 @@
       font-size: 0.95rem;
       overflow-y: auto;
       max-height: 300px;
-      direction: ltr; /* LTR for output URLs */
-      text-align: left; /* Align text left for output */
+      direction: ltr;
+      text-align: left;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2><span style="color: var(--text-color);">أداة Recon:</span> استخراج المسار الأساسي للروابط</h2>
+    <h2><span style="color: var(--text-color);">أداة Recon:</span> استخراج وفلترة المسارات الأساسية</h2>
     <p>
-      الصق قائمة بالروابط أدناه. ستقوم الأداة بتحليل كل رابط واستخراج المسار الأساسي (على سبيل المثال، <code>https://example.com/admin/</code>) لكل منها، ثم عرض النتائج الفريدة والمنظمة. هذه الأداة مفيدة لجمع معلومات سريعة عن هياكل مواقع الويب.
+      الصق قائمة بالروابط أدناه. ستقوم الأداة بتحليل كل رابط واستخراج المسار الأساسي (على سبيل المثال، <code>https://example.com/admin/</code>). يمكنك بعد ذلك تطبيق فلاتر مختلفة لتنقية النتائج، مما يساعدك على التركيز على الروابط الأكثر أهمية لمهام الاستكشاف.
     </p>
     <textarea id="urlInput" placeholder="الصق روابطك هنا (رابط واحد في كل سطر):
 https://example.com/admin/login/index.php
-http://test.com/api/v1/users/profile
-https://sub.domain.com/dashboard/settings"></textarea>
+http://test.com/api/v1/users/profile?id=123&name=test
+https://sub.domain.com/dashboard/settings.js
+https://another.site/docs/page/123.php?file=secret.txt"></textarea>
 
-    <button onclick="processUrls()">استخراج المسارات الأساسية</button>
+    <div class="filter-section">
+      <h4>خيارات الفلترة:</h4>
+      <div class="filter-group">
+        <div class="checkbox-container">
+          <input type="checkbox" id="removeCommonExts" checked>
+          <label for="removeCommonExts">إزالة الامتدادات الشائعة (صور، CSS، JS، إلخ)</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="hasParams">
+          <label for="hasParams">الاحتفاظ بالروابط ذات البارامترات فقط</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="noExt">
+          <label for="noExt">الاحتفاظ بالروابط بدون امتداد فقط</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="hasVulnParams">
+          <label for="hasVulnParams">الاحتفاظ بالروابط ذات البارامترات المحتملة للثغرات</label>
+        </div>
+      </div>
+      <div class="filter-input-group">
+        <label for="customBlacklistExts">امتدادات إضافية للإزالة (فواصلها بفاصلة مثال: `zip,rar,doc`):</label>
+        <input type="text" id="customBlacklistExts" placeholder="pdf,xml">
+      </div>
+      <div class="filter-input-group">
+        <label for="customVulnParams">بارامترات محتملة للثغرات (فواصلها بفاصلة مثال: `cmd,source,path`):</label>
+        <input type="text" id="customVulnParams" placeholder="id,file,cmd,redirect">
+      </div>
+    </div>
+
+    <button onclick="processUrls()">تطبيق الفلاتر واستخراج المسارات</button>
 
     <h3>النتائج المستخرجة:</h3>
     <pre id="result">المسارات المستخرجة ستظهر هنا...</pre>
   </div>
 
   <script>
+    function parseParams(queryString) {
+      const params = {};
+      if (!queryString) return params;
+      queryString.split('&').forEach(pair => {
+        const parts = pair.split('=');
+        if (parts.length > 0) {
+          params[decodeURIComponent(parts[0])] = parts.length > 1 ? decodeURIComponent(parts[1]) : '';
+        }
+      });
+      return params;
+    }
+
+    function hasExtension(path, exts) {
+      const lastSegment = path.split('/').pop();
+      if (lastSegment.includes('.')) {
+        const ext = lastSegment.split('.').pop().toLowerCase();
+        return exts.includes(ext);
+      }
+      return false;
+    }
+
     function processUrls() {
       const input = document.getElementById('urlInput').value;
       const lines = input.split('\n')
@@ -144,41 +286,143 @@ https://sub.domain.com/dashboard/settings"></textarea>
       const basePaths = new Set();
       let hasInvalidUrls = false;
 
+      // Filter options from UI
+      const removeCommonExts = document.getElementById('removeCommonExts').checked;
+      const requireHasParams = document.getElementById('hasParams').checked;
+      const requireNoExt = document.getElementById('noExt').checked;
+      const requireHasVulnParams = document.getElementById('hasVulnParams').checked;
+
+      const commonBlacklistExts = new Set([
+        'css', 'png', 'jpg', 'jpeg', 'svg', 'ico', 'webp', 'scss', 'tif', 'tiff',
+        'ttf', 'otf', 'woff', 'woff2', 'gif', 'pdf', 'bmp', 'eot', 'mp3', 'mp4',
+        'avi', 'zip', 'rar', '7z', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+        'txt', 'json', 'xml', 'csv', 'js' // Added common script/data files
+      ]);
+      const customBlacklistExtsInput = document.getElementById('customBlacklistExts').value;
+      if (customBlacklistExtsInput) {
+        customBlacklistExtsInput.split(',').map(ext => ext.trim().toLowerCase()).forEach(ext => {
+          if (ext) commonBlacklistExts.add(ext);
+        });
+      }
+      
+      const defaultVulnParams = new Set([
+        'file', 'document', 'folder', 'root', 'path', 'pg', 'style', 'pdf', 'template', 
+        'php_path', 'doc', 'page', 'name', 'cat', 'dir', 'action', 'board', 'date', 
+        'detail', 'download', 'prefix', 'include', 'inc', 'locate', 'show', 'site', 
+        'type', 'view', 'content', 'layout', 'mod', 'conf', 'daemon', 'upload', 'log', 
+        'ip', 'cli', 'cmd', 'exec', 'command', 'execute', 'ping', 'query', 'jump', 
+        'code', 'reg', 'do', 'func', 'arg', 'option', 'load', 'process', 'step', 
+        'read', 'function', 'req', 'feature', 'exe', 'module', 'payload', 'run', 
+        'print', 'callback', 'checkout', 'checkout_url', 'continue', 'data', 'dest', 
+        'destination', 'domain', 'feed', 'file_name', 'file_url', 'folder_url', 
+        'forward', 'from_url', 'go', 'goto', 'host', 'html', 'image_url', 'img_url', 
+        'load_file', 'load_url', 'login_url', 'logout', 'navigation', 'next', 
+        'next_page', 'Open', 'out', 'page_url', 'port', 'redir', 'redirect', 
+        'redirect_to', 'redirect_uri', 'redirect_url', 'reference', 'return', 
+        'return_path', 'return_to', 'returnTo', 'return_url', 'rt', 'rurl', 'target', 
+        'to', 'uri', 'url', 'val', 'validate', 'window', 'q', 's', 'search', 'lang', 
+        'keyword', 'keywords', 'year', 'email', 'p', 'jsonp', 'api_key', 'api', 
+        'password', 'emailto', 'token', 'username', 'csrf_token', 'unsubscribe_token', 
+        'id', 'item', 'page_id', 'month', 'immagine', 'list_type', 'terms', 'categoryid', 
+        'key', 'l', 'begindate', 'enddate', 'select', 'report', 'role', 'update', 
+        'user', 'sort', 'where', 'params', 'row', 'table', 'from', 'sel', 'results', 
+        'sleep', 'fetch', 'order', 'column', 'field', 'delete', 'string', 'number', 
+        'filter', 'access', 'admin', 'dbg', 'debug', 'edit', 'grant', 'test', 'alter', 
+        'clone', 'create', 'disable', 'enable', 'make', 'modify', 'rename', 'reset', 
+        'shell', 'toggle', 'adm', 'cfg', 'open', 'img', 'filename', 'preview', 'activity'
+      ]);
+      const customVulnParamsInput = document.getElementById('customVulnParams').value;
+      if (customVulnParamsInput) {
+        customVulnParamsInput.split(',').map(param => param.trim().toLowerCase()).forEach(param => {
+          if (param) defaultVulnParams.add(param);
+        });
+      }
+
       lines.forEach(url => {
         try {
           const parsed = new URL(url);
-          // Remove query parameters and hash before processing path
           const cleanPathname = parsed.pathname.split('?')[0].split('#')[0];
-          const pathParts = cleanPathname.split('/').filter(part => part !== ''); // Filter out empty strings from split
+          const queryParams = parseParams(parsed.search.substring(1)); // Remove '?' and parse
 
-          // Remove the last part (file or specific endpoint)
+          // Apply Filters
+          let skipUrl = false;
+
+          // Filter: Remove Common Extensions
+          if (removeCommonExts && hasExtension(cleanPathname, Array.from(commonBlacklistExts))) {
+            skipUrl = true;
+          }
+
+          // Filter: Require Has Parameters
+          if (!skipUrl && requireHasParams && Object.keys(queryParams).length === 0) {
+            skipUrl = true;
+          }
+
+          // Filter: Require No Extension
+          if (!skipUrl && requireNoExt && hasExtension(cleanPathname, Array.from(commonBlacklistExts))) { // Check against ANY extension
+            skipUrl = true;
+          }
+
+          // Filter: Has Vulnerable Parameters
+          if (!skipUrl && requireHasVulnParams) {
+            let foundVulnParam = false;
+            for (const paramName in queryParams) {
+              if (defaultVulnParams.has(paramName.toLowerCase())) {
+                foundVulnParam = true;
+                break;
+              }
+            }
+            if (!foundVulnParam) {
+              skipUrl = true;
+            }
+          }
+          
+          if (skipUrl) {
+            return; // Skip this URL if any filter condition is met
+          }
+
+          const pathParts = cleanPathname.split('/').filter(part => part !== '');
+          let basePath = '';
+
           if (pathParts.length > 0) {
-            pathParts.pop();
+              // Uro's logic typically removes the "endpoint" if it's not a directory.
+              // For a "base path", we often want to go up one level.
+              // If the last part has an extension, remove it and consider the directory.
+              // If it doesn't have an extension, it might be a folder name, so keep it in the path.
+              const lastPart = pathParts[pathParts.length - 1];
+              if (lastPart.includes('.') && lastPart.split('.').length > 1) { // It's likely a file
+                  pathParts.pop(); // Remove the file
+              } else {
+                  // If it's not a file (no dot), we keep it as part of the "base path"
+                  // e.g., /admin/dashboard -> /admin/dashboard/
+              }
           }
           
-          let basePath = pathParts.join('/');
+          basePath = '/' + pathParts.join('/');
+          if (!basePath.endsWith('/')) basePath += '/';
+          if (basePath === '//') basePath = '/'; // Handle root gracefully
+
+          let finalUrl = `${parsed.protocol}//${parsed.host}${basePath}`;
+
+          // If the URL had parameters and we're *not* filtering for only base paths,
+          // we might want to include the original parameters.
+          // For this tool, we are primarily interested in *base paths* so we won't re-add params here
+          // unless a specific filter for "vuln params" makes sense to output the full URL.
+          // For "base paths", parameters are usually stripped.
           
-          // Ensure base path always ends with a slash for directory representation
-          if (basePath.length > 0 && !basePath.endsWith('/')) {
-            basePath += '/';
-          } else if (basePath.length === 0) { // For root paths like "https://example.com"
-            basePath = '/';
-          }
-          
-          const baseUrl = `${parsed.protocol}//${parsed.host}${basePath}`;
-          basePaths.add(baseUrl);
+          basePaths.add(finalUrl);
+
         } catch (e) {
-          console.warn(`Invalid URL skipped: ${url}`);
+          console.warn(`Invalid URL skipped: ${url}, Error: ${e.message}`);
           hasInvalidUrls = true;
         }
       });
 
       const resultElement = document.getElementById('result');
       if (basePaths.size === 0 && !hasInvalidUrls) {
-        resultElement.textContent = 'لم يتم العثور على مسارات أساسية. الرجاء التأكد من إدخال روابط صالحة.';
+        resultElement.textContent = 'لم يتم العثور على مسارات أساسية بعد تطبيق الفلاتر. الرجاء التحقق من المدخلات وخيارات الفلترة.';
         resultElement.style.color = 'var(--placeholder-color)';
       } else if (basePaths.size === 0 && hasInvalidUrls) {
-        resultElement.textContent = 'لم يتم العثور على روابط صالحة لاستخراج المسارات منها.';
+        resultElement.textContent = 'لم يتم العثور على روابط صالحة لاستخراج المسارات منها، أو تم استبعادها جميعًا بواسطة الفلاتر.';
         resultElement.style.color = 'var(--button-bg-color)';
       } else {
         resultElement.textContent = Array.from(basePaths).sort().join('\n');
