@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JSMap Inspector</title>
+  <style>
+    body {
+      font-family: monospace;
+      margin: 0;
+      background: #101010;
+      color: #a8ff60;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #151515;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #333;
+    }
+    input, button {
+      background: #202020;
+      color: #a8ff60;
+      border: 1px solid #555;
+      padding: 6px;
+    }
+    #searchInput {
+      font-family: monospace;
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 6px;
+      width: 200px;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    #treeView {
+      width: 35%;
+      overflow-y: auto;
+      border-right: 1px solid #333;
+      padding: 10px;
+    }
+    #preview {
+      flex: 1;
+      background: #1e1e1e;
+      color: #ccc;
+      padding: 15px;
+      overflow-y: auto;
+    }
+    ul {
+      list-style: none;
+      padding-left: 20px;
+    }
+    .folder {
+      cursor: pointer;
+      color: #66ff99;
+    }
+    .file {
+      cursor: pointer;
+      color: #99ffcc;
+      text-decoration: underline;
+    }
+    .hidden {
+      display: none;
+    }
+    pre code {
+      font-size: 14px;
+      line-height: 1.5em;
+    }
+    footer {
+      background: #151515;
+      color: #666;
+      text-align: center;
+      padding: 5px;
+      border-top: 1px solid #333;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai-sublime.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</head>
+<body>
+  <header>
+    <input type="file" id="fileInput" accept=".map">
+    <input type="text" id="searchInput" placeholder="Search...">
+  </header>
+
+  <main>
+    <div id="treeView"></div>
+    <div id="preview"><i>Source content will be displayed here</i></div>
+  </main>
+
+  <footer>
+    Powered by mitsec — <a href="https://x.com/ynsmroztas" target="_blank" style="color: #888;">x.com/ynsmroztas</a>
+  </footer>
+
+  <script>
+    const treeView = document.getElementById('treeView');
+    const preview = document.getElementById('preview');
+    const searchInput = document.getElementById('searchInput');
+    const fileInput = document.getElementById('fileInput');
+    let fileContents = {};
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const content = event.target.result;
+        try {
+          const jsmap = JSON.parse(content);
+          const sources = jsmap.sources || [];
+          const sourcesContent = jsmap.sourcesContent || [];
+
+          fileContents = {};
+          sources.forEach((src, idx) => {
+            fileContents[src] = sourcesContent[idx] || "(No content)";
+          });
+
+          renderTree(buildTree(sources));
+        } catch (err) {
+          alert("Invalid .js.map file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function buildTree(paths) {
+      const root = {};
+      for (const path of paths) {
+        const parts = path.split('/');
+        let current = root;
+        for (const part of parts) {
+          if (!current[part]) current[part] = {};
+          current = current[part];
+        }
+      }
+      return root;
+    }
+
+    function renderTree(tree, parent = treeView) {
+      parent.innerHTML = '';
+      const ul = document.createElement('ul');
+      parent.appendChild(ul);
+      renderNode(tree, ul, '');
+    }
+
+    function renderNode(node, container, fullPath) {
+      for (const key in node) {
+        const li = document.createElement('li');
+        const path = fullPath ? `${fullPath}/${key}` : key;
+
+        if (Object.keys(node[key]).length === 0) {
+          const span = document.createElement('span');
+          span.textContent = key;
+          span.className = 'file';
+          span.onclick = () => previewFile(path);
+          li.appendChild(span);
+        } else {
+          const folder = document.createElement('span');
+          folder.textContent = key;
+          folder.className = 'folder';
+          const subUL = document.createElement('ul');
+          folder.onclick = () => subUL.classList.toggle('hidden');
+          li.appendChild(folder);
+          renderNode(node[key], subUL, path);
+          li.appendChild(subUL);
+        }
+        container.appendChild(li);
+      }
+    }
+
+    function previewFile(path) {
+      const content = fileContents[path];
+      if (content !== undefined) {
+        const ext = path.split('.').pop().toLowerCase();
+        let lang = 'plaintext';
+        if (ext === 'js') lang = 'javascript';
+        else if (ext === 'html') lang = 'html';
+        else if (ext === 'ts') lang = 'typescript';
+        else if (ext === 'json') lang = 'json';
+        else if (ext === 'css') lang = 'css';
+
+        preview.innerHTML = `<pre><code class="language-${lang}">${escapeHtml(content)}</code></pre>`;
+        hljs.highlightAll();
+      } else {
+        preview.innerHTML = `<b>Content not found:</b> ${path}`;
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, function (m) {
+        return ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[m];
+      });
+    }
+
+    searchInput.addEventListener('input', () => {
+      const term = searchInput.value.toLowerCase();
+      const items = treeView.querySelectorAll('li');
+      items.forEach(li => {
+        const text = li.textContent.toLowerCase();
+        li.style.display = text.includes(term) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
