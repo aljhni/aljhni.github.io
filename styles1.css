@@ -1,0 +1,71 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #0f0f0f;
+  color: #e0e0e0;
+}
+
+header {
+  background: #1f1f1f;
+  padding: 1em;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #ff5555;
+}
+
+main {
+  padding: 1.5em;
+}
+
+.waf-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 2em;
+  justify-content: center;
+}
+
+.waf-buttons button {
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 0.6em 1em;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.waf-buttons button:hover {
+  background: #ff5555;
+}
+
+.output {
+  background: #1a1a1a;
+  padding: 1em;
+  border-radius: 8px;
+}
+
+.output h2 {
+  margin-top: 0;
+  color: #ff5555;
+}
+
+#tamper-list {
+  list-style: none;
+  padding: 0;
+}
+
+#tamper-list li {
+  padding: 0.3em 0;
+  border-bottom: 1px solid #333;
+}
+
+footer {
+  margin-top: 3em;
+  text-align: center;
+  color: #666;
+}
